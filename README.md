@@ -1,2 +1,2 @@
-# jailbot
-A silly discord bot.
+# paywallbot
+I hate paywalls!
