@@ -8,6 +8,8 @@ DISCORD_TOKEN = os.environ['JAILBOT_TOKEN']
 
 client = discord.Client()
 
+#Initialize collections.
+
 @client.event
 async def on_message(message):
     if message.content.startswith('https://www.nytimes.com'):

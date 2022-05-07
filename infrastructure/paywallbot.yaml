@@ -1,0 +1,101 @@
+Description: This is a silly Discord bot.
+
+Resources:
+
+  PaywallTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: PaywallBotPaywall
+      AttributeDefinitions: 
+        - AttributeName: paywall_url
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: paywall_url
+          KeyType: HASH          
+      Tags:
+          - Key: Vendor
+            Value: PaywallBot
+          - Key: Name
+            Value: PaywallBotPaywall
+
+  EmojiTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: PaywallBotEmoji 
+      AttributeDefinitions: 
+        - AttributeName: guild_id
+          AttributeType: N
+        - AttributeName: emoji_id
+          AttributeType: N          
+      KeySchema: 
+        - AttributeName: guild_id
+          KeyType: HASH   
+        - AttributeName: emoji_id
+          KeyType: RANGE         
+      Tags:
+          - Key: Vendor
+            Value: PaywallBot
+          - Key: Name
+            Value: PaywallBotEmoji         
+
+  ReplyTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: PaywallBotReply 
+      AttributeDefinitions: 
+        - AttributeName: guild_id
+          AttributeType: N
+        - AttributeName: reply
+          AttributeType: S          
+      KeySchema: 
+        - AttributeName: guild_id
+          KeyType: HASH   
+        - AttributeName: reply
+          KeyType: RANGE         
+      Tags:
+          - Key: Vendor
+            Value: PaywallBot
+          - Key: Name
+            Value: PaywallBotReply                     
+
+  PaywallBotTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service: ecs.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:  
+              - Effect: Allow
+                Action: "dynamodb:*"
+                #arnrewrite
+                Resource: 
+                  - !GetAtt PaywallTable.Arn
+                  - !GetAtt EmojiTable.Arn
+                  - !GetAtt ReplyTable.Arn
+      Tags:
+          - Key: Vendor
+            Value: PaywallBot
+          - Key: Name
+            Value: PaywallBotTaskRole            
