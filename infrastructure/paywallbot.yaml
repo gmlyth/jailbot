@@ -1,6 +1,20 @@
 Description: This is a silly Discord bot.
 
+Parameters:
+  PaywallBotToken:
+    Type: String
+    Default: Get it from Discord if you don't have it. Don't just make it up.
+    Description: Enter the token for your paywall bot.
+
 Resources:
+
+  PaywallBotTokenParameter:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Description: PaywallBot Token
+      Name: paywallbot-token
+      Type: String
+      Value: !Ref PaywallBotToken
 
   PaywallTable: 
     Type: AWS::DynamoDB::Table
