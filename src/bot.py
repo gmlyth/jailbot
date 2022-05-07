@@ -1,6 +1,7 @@
 import os
 import boto3
 import cache
+import random
 
 import discord
 from discord.ext import commands 
@@ -17,18 +18,15 @@ bot = commands.Bot(command_prefix=".")
 async def on_message(message):
     if message.author == bot.user:
         return
-    # if message.content.startswith('https://www.nytimes.com'):
-    #         skynet = discord.utils.get(bot.emojis, name="skynet")
-    #         await message.add_reaction(skynet)
-    #         await message.channel.send('https://i.pinimg.com/originals/e6/df/a5/e6dfa50084fff4441d3b38f29303e930.jpg')
-    # process message against known paywalls. If a match, add a reaction (if any exist for server) and send a reply.
-    
+  
     if message.content.startswith('.') == False:
         if await is_paywall(message.content):
-            emoji = await get_emoji()
-            reply = await get_reply()
-            await message.add_reaction(emoji)
-            await message.channel.send(reply)
+            emoji = await get_emoji(message.guild.id)
+            reply = await get_reply(message.guild.id)
+            if emoji != None:
+                await message.add_reaction(emoji)
+            if reply != None:
+                await message.channel.send(reply)
     
     await bot.process_commands(message)
     return
@@ -60,16 +58,7 @@ async def reply(ctx, *args):
 
 @bot.event
 async def on_ready(): 
-    cache.PAYWALLS = [
-        {'paywall_url': 'https://www.nytimes.com'}
-        ,{'paywall_url': 'https://www.poop.com'}
-        ,{'paywall_url': 'https://www.wsj.com'}
-    ]
-    cache.EMOJIS = [{'guild_id': 621734361024299049, 'emoji_id': 825544606396973116, 'guild_name': 'This MUST be "Flavor Town"', 'emoji_name': 'dickitydee'}
-    ]
-    cache.REPLIES = [
-{'guild_id': 621734361024299049, 'reply': 'Paywalls!', 'guild_name': 'This MUST be "Flavor Town"'}
-    ] 
+    #https://www.youtube.com/watch?v=SMTDQZzQMKk
     return 
 
 async def register_paywall(guild_name, guild_id, paywall_url):
@@ -80,13 +69,15 @@ async def register_paywall(guild_name, guild_id, paywall_url):
     return result
 
 async def register_emoji(guild_name, guild_id, emoji_name, emoji_id):
-    result = f"Now we'd add {emoji_name} (id:{emoji_id}) as a registered emjoi response for server {guild_name} (id:{guild_id}."
-    print(result)
+    obj = {'guild_name': guild_name, 'guild_id': guild_id, 'emoji_name': emoji_name, 'emoji_id': emoji_id}
+    cache.EMOJIS.append(obj)
+    result = f'Added :{emoji_name}: as a registered emjoi response.'
     return result
 
 async def register_reply(guild_name, guild_id, reply):
-    result = f"Now we'd add {reply} as a registered text (or image) response for server {guild_name} (id:{guild_id})."
-    print(result)
+    obj = {'guild_name': guild_name, 'guild_id': guild_id, 'reply': reply}
+    cache.REPLIES.append(obj)
+    result = f'Added :{reply}: as a registered text response.'
     return result
 
 async def is_paywall(message):
@@ -98,13 +89,23 @@ async def is_paywall(message):
             break
     return result
 
-async def get_emoji():
-    emoji = 'skynet'
+async def get_emoji(guild_id):
+    emoji = None
+
+    if len(cache.EMOJIS) > 0:
+        itm = random.choice(cache.EMOJIS)
+        emoji = itm['emoji_name']
+
     result = discord.utils.get(bot.emojis, name=emoji)
     return result
 
-async def get_reply():
-    result = 'dude...'
+async def get_reply(guild_id):
+    result = None
+
+    if len(cache.REPLIES) > 0:
+        itm = random.choice(cache.REPLIES)
+        result = itm['reply']
+
     return result    
 
 bot.run(DISCORD_TOKEN)
