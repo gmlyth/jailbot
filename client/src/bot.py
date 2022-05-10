@@ -103,11 +103,23 @@ async def is_paywall(message):
 
 #todo: check based on guild id.
 async def is_emoji(emoji):
-    return
+    result = False
+    
+    for dict in cache.EMOJIS:
+        if emoji == dict["emoji_name"]:
+            result = True
+            break
+    return result
 
 #todo: check based on guild id.
 async def is_reply(reply):
-    return
+    reply = False
+    
+    for dict in cache.REPLIES:
+        if reply == dict["reply"]:
+            reply = True
+            break
+    return reply
 
 async def get_emoji(guild_id):
     emoji = None
