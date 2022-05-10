@@ -6,7 +6,7 @@ import random
 import discord
 from discord.ext import commands 
 
-ssm_client = boto3.client("ssm")
+ssm_client = boto3.client('ssm', region_name='us-east-2')
 
 #Note: set the token. Duh.
 #DISCORD_TOKEN = os.environ['JAILBOT_TOKEN']
@@ -113,5 +113,10 @@ async def get_reply(guild_id):
         result = itm['reply']
 
     return result    
+
+@bot.command()
+async def quit(ctx):
+    await ctx.send("Shutting down the bot")
+    return await bot.logout() # this just shuts down the bot.
 
 bot.run(DISCORD_TOKEN)
