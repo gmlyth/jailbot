@@ -22,6 +22,8 @@ async def on_message(message):
         return
 
     if await is_blocked_user(message.author.id):
+        denial = f'<@{message.author.id}> I won\'t even dignify that with a reply.'
+        await message.channel.send(denial)
         return
   
     if message.content.startswith('.') == False:
