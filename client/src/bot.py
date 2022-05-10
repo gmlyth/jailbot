@@ -22,7 +22,7 @@ async def on_message(message):
         return
 
     if await is_blocked_user(message.author.id):
-        denial = f'<@{message.author.id}> I won\'t even dignify that with a reply.'
+        denial = f'<@{message.author.id}> I won\'t even dignify that with a response.'
         await message.channel.send(denial)
         return
   
