@@ -58,6 +58,32 @@ async def reply(ctx, *args):
     await ctx.channel.send(response)   
     return  
 
+@bot.command(help="This will list paywalls, emojis, and replies for the current server.")
+async def paywalls(ctx):
+    embed=discord.Embed(title="Paywalls", url="https://github.com/gmlyth/paywallbot"
+        , description=f'This is a list of the registered paywall info for {ctx.guild.name}', color=0xFF5733)
+    embed.set_author(name=bot.user.display_name, url="https://github.com/gmlyth/paywallbot", icon_url=bot.user.avatar_url)
+    paywalls_value = 'There are no paywalls on this server. Type ".paywall (some url) to add one!"'
+    emojis_value = 'There are no emoji responses on this server. Type ".emoji (emoji) to add one!"'
+    replies_value = 'There are no text responses on this server. Type ".reply (reply) to add one!"'
+    if len(cache.PAYWALLS) > 0:
+        paywalls_value = ''
+        for dict in cache.PAYWALLS:
+            paywalls_value = paywalls_value + dict['paywall_url'] + '\n'
+    if len(cache.EMOJIS) > 0:
+        emojis_value = ''
+        for dict in cache.EMOJIS:
+            emojis_value = emojis_value + dict['emoji_name'] + '\n'
+    if len(cache.REPLIES) > 0:
+        replies_value = ''
+        for dict in cache.REPLIES:
+            replies_value = replies_value + dict['reply'] + '\n'            
+    embed.add_field(name="Paywalls", value=paywalls_value, inline=False)
+    embed.add_field(name="Emojis", value=emojis_value, inline=False)
+    embed.add_field(name="Replies", value=replies_value, inline=False)
+    await ctx.send(embed=embed)   
+    return  
+
 @bot.event
 async def on_ready(): 
     #https://www.youtube.com/watch?v=SMTDQZzQMKk
