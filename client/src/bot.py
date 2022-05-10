@@ -20,11 +20,6 @@ bot = commands.Bot(command_prefix=".")
 async def on_message(message):
     if message.author == bot.user:
         return
-
-    if await is_blocked_user(message.author.id):
-        denial = f'<@{message.author.id}> I won\'t even dignify that with a response.'
-        await message.channel.send(denial)
-        return
   
     if message.content.startswith('.') == False:
         if await is_paywall(message.content):
@@ -41,33 +36,45 @@ async def on_message(message):
 @bot.command(help="This will register the domain of the url that's passed in as a paywall, and ignores it if it's not in the expected format.",
 	brief="Registers a paywall.")
 async def paywall(ctx, arg):
-    response = await register_paywall(ctx.guild.name, ctx.guild.id, arg)
+    if await is_blocked_user(ctx.message.author.id):
+        response = f'<@{ctx.message.author.id}> I won\'t even dignify that with a response.'
+    else:
+        response = await register_paywall(ctx.guild.name, ctx.guild.id, arg)
     await ctx.channel.send(response)
     return
 
 @bot.command(help="This will register a custom emoji from the server in question as a response to a paywall - just on that server.",
 	brief="Registers an emoji response.")
 async def emoji(ctx, arg):
-    parts = arg.split(':')
-    response = await register_emoji(ctx.guild.name, ctx.guild.id, parts[1], int(parts[2].replace('>','')))
+    if await is_blocked_user(ctx.message.author.id):
+        response = f'<@{ctx.message.author.id}> I won\'t even dignify that with a response.'
+    else:
+        parts = arg.split(':')
+        response = await register_emoji(ctx.guild.name, ctx.guild.id, parts[1], int(parts[2].replace('>','')))
     await ctx.channel.send(response)   
     return
 
 @bot.command(help="This will register a text value as a response to a paywall - just on that server.",
 	brief="Registers a text response.")
 async def reply(ctx, *args):
-    msg = ""
-    for arg in args:
-        msg = msg + " " + arg
-    response = await register_reply(ctx.guild.name, ctx.guild.id, msg)
+    if await is_blocked_user(ctx.message.author.id):
+        response = f'<@{ctx.message.author.id}> I won\'t even dignify that with a response.'
+    else:
+        msg = ""
+        for arg in args:
+            msg = msg + " " + arg
+        response = await register_reply(ctx.guild.name, ctx.guild.id, msg)
     await ctx.channel.send(response)   
     return  
 
 @bot.command(help="This block a user from registering paywalls, emojis, or replies (or blocking another user).")
 async def block(ctx, *args):
-    id = ctx.message.mentions[0].id
-    name = ctx.message.mentions[0].display_name
-    response = await register_blocked_user(ctx.guild.name, ctx.guild.id, name, id)
+    if await is_blocked_user(ctx.message.author.id):
+        response = f'<@{ctx.message.author.id}> I won\'t even dignify that with a response.'
+    else:
+        id = ctx.message.mentions[0].id
+        name = ctx.message.mentions[0].display_name
+        response = await register_blocked_user(ctx.guild.name, ctx.guild.id, name, id)
     await ctx.channel.send(response)
     return 
 
