@@ -86,7 +86,31 @@ Resources:
           - Key: Vendor
             Value: PaywallBot
           - Key: Name
-            Value: PaywallBotReply                     
+            Value: PaywallBotReply  
+
+  BlockedUserTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: PaywallBotBlockedUser
+      AttributeDefinitions: 
+        - AttributeName: guild_id
+          AttributeType: N
+        - AttributeName: user_id
+          AttributeType: N        
+      KeySchema: 
+        - AttributeName: guild_id
+          KeyType: HASH   
+        - AttributeName: user_id
+          KeyType: RANGE         
+      Tags:
+          - Key: Vendor
+            Value: PaywallBot
+          - Key: Name
+            Value: PaywallBotBlockedUser                              
 
   PaywallBotTaskRole:
     Type: AWS::IAM::Role
@@ -112,6 +136,7 @@ Resources:
                   - !GetAtt PaywallTable.Arn
                   - !GetAtt EmojiTable.Arn
                   - !GetAtt ReplyTable.Arn
+                  - !GetAtt BlockedUserTable.Arn
       Tags:
           - Key: Vendor
             Value: PaywallBot
