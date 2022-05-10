@@ -2,6 +2,8 @@ import os
 import boto3
 import cache
 import random
+import utils
+from urllib.parse import urlparse
 
 import discord
 from discord.ext import commands 
@@ -62,12 +64,15 @@ async def on_ready():
     return 
 
 async def register_paywall(guild_name, guild_id, paywall_url):
-    #result = f"Now we'd add {paywall_url} as a registered paywall."
-    obj = {'paywall_url': paywall_url}
-    cache.PAYWALLS.append(obj)
-    table = cache.dynamodb_client.Table('PaywallBotPaywall')
-    table.put_item(Item=obj)
-    result = f'Added {paywall_url} to paywalls.'
+    hostname = await utils.get_hostname(paywall_url)
+    if await is_paywall(hostname):
+        result = f'{hostname} is already a paywall on this server.'
+    else:
+        obj = {'guild_name': guild_name, 'guild_id': guild_id, 'paywall_url': hostname}
+        cache.PAYWALLS.append(obj)
+        table = cache.dynamodb_client.Table('PaywallBotPaywall')
+        table.put_item(Item=obj)
+        result = f'Added {hostname} to paywalls.'
     return result
 
 async def register_emoji(guild_name, guild_id, emoji_name, emoji_id):
@@ -83,9 +88,10 @@ async def register_reply(guild_name, guild_id, reply):
     cache.REPLIES.append(obj)
     table = cache.dynamodb_client.Table('PaywallBotReply')
     table.put_item(Item=obj)    
-    result = f'Added :{reply}: as a registered text response.'
+    result = f'Added "{reply}" as a registered text response.'
     return result
 
+#todo: check based on guild id.
 async def is_paywall(message):
     result = False
     
@@ -94,6 +100,14 @@ async def is_paywall(message):
             result = True
             break
     return result
+
+#todo: check based on guild id.
+async def is_emoji(emoji):
+    return
+
+#todo: check based on guild id.
+async def is_reply(reply):
+    return
 
 async def get_emoji(guild_id):
     emoji = None

@@ -25,11 +25,15 @@ Resources:
         WriteCapacityUnits: 1
       TableName: PaywallBotPaywall
       AttributeDefinitions: 
+        - AttributeName: guild_id
+          AttributeType: N
         - AttributeName: paywall_url
-          AttributeType: S
+          AttributeType: S          
       KeySchema: 
+        - AttributeName: guild_id
+          KeyType: HASH   
         - AttributeName: paywall_url
-          KeyType: HASH          
+          KeyType: RANGE        
       Tags:
           - Key: Vendor
             Value: PaywallBot
