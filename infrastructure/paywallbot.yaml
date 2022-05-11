@@ -16,6 +16,14 @@ Resources:
       Type: String
       Value: !Ref PaywallBotToken
 
+  PaywallBotTokenStreamNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Description: PaywallBot Stream Name
+      Name: paywallbot-stream-name
+      Type: String
+      Value: !Ref KinesisDataStreamPaywall      
+
   PaywallTable: 
     Type: AWS::DynamoDB::Table
     Properties: 
@@ -141,9 +149,111 @@ Resources:
                 Action: "ssm:*"
                 #arnrewrite
                 Resource: 
-                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/paywallbot-token                 
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/paywallbot-token 
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/paywallbot-stream-name   
+              - Effect: Allow
+                Action: "kinesis:*"
+                Resource:
+                  - !GetAtt KinesisDataStreamPaywall.Arn              
       Tags:
           - Key: Vendor
             Value: PaywallBot
           - Key: Name
             Value: PaywallBotTaskRole            
+
+  S3BucketPaywalls:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub "${AWS::AccountId}-paywallbot"
+      Tags:
+        - Key: Vendor
+          Value: PaywallBot
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls : true
+        BlockPublicPolicy : true
+        IgnorePublicAcls : true
+        RestrictPublicBuckets : true
+
+  KinesisDataStreamPaywall:
+    Type: AWS::Kinesis::Stream
+    Properties: 
+      Name: !Sub "${AWS::AccountId}-paywallbot-stream"
+      RetentionPeriodHours: 24
+      ShardCount: 1
+      Tags: 
+        - Key: Vendor
+          Value: PaywallBot
+        - Key: Name
+          Value: !Sub "${AWS::AccountId}-paywallbot-stream"     
+
+  KinesisFirehosePaywall:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties: 
+      DeliveryStreamName: !Sub "${AWS::AccountId}-paywallbot-firehose"
+      DeliveryStreamType: KinesisStreamAsSource
+      KinesisStreamSourceConfiguration: 
+        KinesisStreamARN: !GetAtt KinesisDataStreamPaywall.Arn
+        RoleARN: !GetAtt KinesisSourceIAMRole.Arn
+      S3DestinationConfiguration: 
+        BucketARN: !GetAtt S3BucketPaywalls.Arn
+        RoleARN: !GetAtt FirehoseDeliveryIAMRole.Arn
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 5
+      Tags: 
+        - Key: Vendor
+          Value: PaywallBot
+        - Key: Name
+          Value: !Sub "${AWS::AccountId}-paywallbot-firehose"         
+
+  KinesisSourceIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service: firehose.amazonaws.com
+          Action: sts:AssumeRole
+      Tags:
+        - Key: Vendor
+          Value: mpows
+        - Key: Name
+          Value: !Sub "mpows-${AWS::AccountId}-kinesis-role"            
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "kinesis:*"
+                Resource: !GetAtt KinesisDataStreamPaywall.Arn         
+                
+  FirehoseDeliveryIAMRole:
+    Type: AWS::IAM::Role 
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service: firehose.amazonaws.com
+          Action: sts:AssumeRole
+      Tags:
+        - Key: Vendor
+          Value: PaywallBot
+        - Key: Name
+          Value: !Sub "mpows-${AWS::AccountId}-firehose-role"           
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:*"
+                Resource: !GetAtt S3BucketPaywalls.Arn                 

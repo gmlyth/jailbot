@@ -1,8 +1,10 @@
 import os
 import boto3
 import cache
+import json
 import random
 import utils
+import datetime
 from urllib.parse import urlparse
 
 import discord
@@ -13,6 +15,7 @@ ssm_client = boto3.client('ssm', region_name='us-east-2')
 #Note: set the token. Duh.
 #DISCORD_TOKEN = os.environ['JAILBOT_TOKEN']
 DISCORD_TOKEN = ssm_client.get_parameter(Name='paywallbot-token')["Parameter"]["Value"]
+cache.KINESIS_STREAM_NAME = ssm_client.get_parameter(Name='paywallbot-stream-name')["Parameter"]["Value"]
 
 bot = commands.Bot(command_prefix=".")
 
@@ -29,6 +32,20 @@ async def on_message(message):
                 await message.add_reaction(emoji)
             if reply != None:
                 await message.channel.send(reply)
+
+            record = {'guild_id' : message.guild.id
+                , 'guild_name' : message.guild.name
+                , 'paywall_url' : message.content
+                , 'timestamp' :  datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+                , 'author_id' : message.author.id
+                , 'author_name' : message.author.display_name}
+            record_massaged = json.dumps(record) + "\n"
+                           
+            cache.kinesis_client.put_record(
+                StreamName=cache.KINESIS_STREAM_NAME,
+                Data=record_massaged.encode('utf-8'),
+                PartitionKey='string'
+            )
     
     await bot.process_commands(message)
     return
