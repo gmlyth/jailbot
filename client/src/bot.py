@@ -67,7 +67,7 @@ async def reply(ctx, *args):
     await ctx.channel.send(response)   
     return  
 
-@bot.command(help="This block a user from registering paywalls, emojis, or replies (or blocking another user).")
+@bot.command(help="This blocks a user from registering paywalls, emojis, or replies (or blocking another user).")
 async def block(ctx, *args):
     if await is_blocked_user(ctx.message.author.id):
         response = f'<@{ctx.message.author.id}> I won\'t even dignify that with a response.'
@@ -86,7 +86,7 @@ async def paywalls(ctx):
     paywalls_value = 'There are no paywalls on this server. Type ".paywall (some url) to add one!"'
     emojis_value = 'There are no emoji responses on this server. Type ".emoji to add one!"'
     replies_value = 'There are no text responses on this server. Type ".reply to add one!"'
-    blocked_users_value = 'There are blocked users on this server. Type ".block to block someone!"'
+    blocked_users_value = 'There are no blocked users on this server. Type ".block to block someone!"'
     if len(cache.PAYWALLS) > 0:
         paywalls_value = ''
         for dict in cache.PAYWALLS:
@@ -129,7 +129,7 @@ async def register_paywall(guild_name, guild_id, paywall_url):
 
 async def register_blocked_user(guild_name, guild_id, user_name, user_id):
     if await is_blocked_user(user_id):
-        result = f':<@{user_id}>: is already a blocked user on this server.'
+        result = f':<@{user_id}> is already a blocked user on this server.'
     else:
         obj = {'guild_name': guild_name, 'guild_id': guild_id, 'user_name': user_name, 'user_id': user_id}
         cache.BLOCKED_USERS.append(obj)
