@@ -137,6 +137,11 @@ Resources:
                   - !GetAtt EmojiTable.Arn
                   - !GetAtt ReplyTable.Arn
                   - !GetAtt BlockedUserTable.Arn
+              - Effect: Allow
+                Action: "ssm:*"
+                #arnrewrite
+                Resource: 
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/paywallbot-token                 
       Tags:
           - Key: Vendor
             Value: PaywallBot
