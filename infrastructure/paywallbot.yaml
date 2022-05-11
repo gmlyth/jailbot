@@ -219,7 +219,7 @@ Resources:
           Action: sts:AssumeRole
       Tags:
         - Key: Vendor
-          Value: mpows
+          Value: Paywallbot
         - Key: Name
           Value: !Sub "${AWS::AccountId}-kinesis-role"            
       Path: /
